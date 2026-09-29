@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bruslení škol – rezervace ledu 2026/2027</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F2F8FB; --paper:#FFFFFF; --ink:#15324A; --muted:#5A7488; --line:#D3E4EE;
+  --blue:#32A0D2; --blue-soft:#E3F2FA; --blue-ink:#11618A;
+  --orange:#FFAA37; --orange-soft:#FFF1DC; --orange-ink:#8A4B00;
+  --closed:#EEF1F3; --closed-ink:#8595A2;
+  --ok:#2E8B57;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0F1D28; --paper:#162836; --ink:#E6F1F7; --muted:#9DB4C4; --line:#274155;
+    --blue-soft:#17384D; --blue-ink:#8FD0EE;
+    --orange-soft:#3F2E14; --orange-ink:#FFC677;
+    --closed:#1C2B36; --closed-ink:#6E8494;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0F1D28; --paper:#162836; --ink:#E6F1F7; --muted:#9DB4C4; --line:#274155;
+  --blue-soft:#17384D; --blue-ink:#8FD0EE;
+  --orange-soft:#3F2E14; --orange-ink:#FFC677;
+  --closed:#1C2B36; --closed-ink:#6E8494;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Barlow,Calibri,"Segoe UI",Arial,sans-serif}
+button,select,input,textarea{font:inherit;color:inherit}
+.wrap{max-width:1180px;margin:0 auto;padding:24px 20px 60px}
+h1,h2,h3{font-family:"Barlow Condensed","Arial Narrow",Calibri,sans-serif;margin:0;line-height:1.1}
+header.top{display:flex;flex-wrap:wrap;gap:16px 32px;align-items:flex-end;justify-content:space-between;border-bottom:3px solid var(--blue);padding-bottom:16px}
+header.top h1{font-size:44px;font-weight:700;letter-spacing:.01em}
+header.top p{margin:4px 0 0;color:var(--muted)}
+.freecount{display:flex;align-items:center;gap:10px;background:var(--orange-soft);color:var(--orange-ink);border-radius:10px;padding:8px 14px;border:0;cursor:pointer}
+.freecount b{font-family:"Barlow Condensed",sans-serif;font-size:30px;line-height:1}
+.notice{margin:16px 0 0;padding:10px 14px;border-radius:8px;background:var(--blue-soft);color:var(--blue-ink);font-size:15px}
+.notice[hidden]{display:none}
+nav.tabs{display:flex;gap:4px;margin:22px 0 14px;flex-wrap:wrap;align-items:center}
+nav.tabs button{border:1px solid var(--line);background:var(--paper);padding:8px 16px;border-radius:999px;cursor:pointer;font-weight:600}
+nav.tabs button[aria-selected="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.spacer{flex:1}
+label.hl{display:flex;gap:8px;align-items:center;font-size:15px;color:var(--muted)}
+select,input[type=text],textarea{background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+.weekbar{display:flex;align-items:center;gap:12px;margin:6px 0 14px;flex-wrap:wrap}
+.weekbar h2{font-size:30px;font-weight:600}
+.parity{font-family:"Barlow Condensed",sans-serif;font-size:18px;font-weight:600;padding:2px 10px;border-radius:6px;background:var(--blue-soft);color:var(--blue-ink)}
+.parity.even{background:var(--orange-soft);color:var(--orange-ink)}
+.navbtn{border:1px solid var(--line);background:var(--paper);border-radius:8px;padding:6px 12px;cursor:pointer;font-weight:600}
+.navbtn:disabled{opacity:.4;cursor:default}
+.week{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.day{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.day h3{font-size:22px;font-weight:600;display:flex;justify-content:space-between;align-items:baseline}
+.day h3 small{font-family:Barlow,sans-serif;font-size:14px;color:var(--muted);font-weight:500}
+.slot{position:relative;border-radius:9px;padding:10px 11px 11px;text-align:left;border:1px solid transparent;cursor:pointer;display:flex;flex-direction:column;gap:2px;min-height:86px;width:100%;background:var(--blue-soft)}
+.slot .time{font-size:13px;font-weight:600;color:var(--muted)}
+.slot .who{font-weight:600;line-height:1.25;overflow-wrap:anywhere}
+.slot .st{font-size:13px;margin-top:auto}
+.slot.assigned{background:var(--blue-soft)}
+.slot.free{background:var(--orange-soft);border-color:var(--orange)}
+.slot.free .who{color:var(--orange-ink)}
+.slot.booked{background:var(--paper);border-color:var(--blue);box-shadow:inset 4px 0 0 var(--blue)}
+.slot.closed{background:repeating-linear-gradient(135deg,var(--closed) 0 8px,transparent 8px 14px);border-color:var(--line);color:var(--closed-ink);cursor:default}
+.slot.closed .time{color:var(--closed-ink)}
+.slot.past{opacity:.55}
+.slot.dim{opacity:.35}
+.slot.mark{outline:3px solid var(--ink);outline-offset:1px}
+.slot:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.legend{display:flex;gap:14px 22px;flex-wrap:wrap;margin-top:18px;font-size:14px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:7px}
+.legend i{width:18px;height:14px;border-radius:4px;display:inline-block;border:1px solid var(--line)}
+.list{display:flex;flex-direction:column;gap:8px}
+.row{display:grid;grid-template-columns:150px 110px 1fr auto;gap:12px;align-items:center;background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:10px 14px}
+.row .d{font-weight:600}
+.row .t{color:var(--muted)}
+.row.free{border-left:5px solid var(--orange)}
+.row.booked{border-left:5px solid var(--blue)}
+.row.assigned{border-left:5px solid var(--blue-soft)}
+.empty{padding:28px;text-align:center;color:var(--muted);background:var(--paper);border:1px dashed var(--line);border-radius:12px}
+.btn{border:0;border-radius:8px;padding:9px 14px;font-weight:600;cursor:pointer;background:var(--blue);color:#fff}
+.btn.orange{background:var(--orange);color:#3B2200}
+.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--ink)}
+.btn.danger{background:transparent;border:1px solid #C0504D;color:#C0504D}
+.btn:disabled{opacity:.5;cursor:default}
+dialog{border:0;border-radius:14px;padding:0;max-width:440px;width:calc(100% - 32px);background:var(--paper);color:var(--ink);box-shadow:0 20px 60px rgba(0,20,40,.35)}
+dialog::backdrop{background:rgba(10,30,45,.45)}
+.dlg{padding:20px 22px 18px;display:flex;flex-direction:column;gap:12px}
+.dlg h2{font-size:28px}
+.dlg .meta{color:var(--muted);margin-top:-6px}
+.dlg .state{padding:10px 12px;border-radius:8px;background:var(--bg);font-size:15px}
+.dlg .field{display:flex;flex-direction:column;gap:4px;font-size:14px;color:var(--muted)}
+.dlg .field select,.dlg .field input{color:var(--ink);font-size:16px}
+.dlg .actions{display:flex;flex-direction:column;gap:8px;margin-top:4px}
+.dlg .err{color:#C0504D;font-size:14px;min-height:1em}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .2s}
+.toast.show{opacity:1}
+.headside{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.loginbox{display:flex;gap:8px;align-items:center;font-size:15px}
+.loginbox b{font-weight:600}
+.loginbox input{width:130px}
+.handover{display:flex;flex-direction:column;gap:8px;padding-top:12px;margin-top:4px;border-top:1px solid var(--line)}
+.handover input{background:var(--paper);color:var(--ink)}
+.foot{margin-top:40px;padding-top:14px;border-top:1px solid var(--line);display:flex;justify-content:space-between;color:var(--muted);font-size:14px}
+.linkbtn{background:none;border:0;color:var(--muted);text-decoration:underline;cursor:pointer;font-size:14px}
+@media (max-width:900px){
+  .week{grid-template-columns:1fr}
+  .day{display:grid;grid-template-columns:110px 1fr 1fr;align-items:stretch}
+  .day h3{flex-direction:column;align-items:flex-start;gap:2px}
+  header.top h1{font-size:36px}
+}
+@media (max-width:560px){
+  .day{grid-template-columns:1fr 1fr}
+  .day h3{grid-column:1/-1;flex-direction:row;align-items:baseline}
+  .row{grid-template-columns:1fr auto;gap:4px 10px}
+  .row .who{grid-column:1/-1}
+  .row .d{grid-column:1}
+}
+@media (prefers-reduced-motion:reduce){.toast{transition:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>Bruslení škol</h1>
+      <p>Rozpis ledu 5. 11. 2026 – 31. 3. 2027. Přihlaste se kódem školy, pak můžete svůj termín uvolnit nebo si zarezervovat volný.</p>
+    </div>
+    <div class="headside">
+      <div class="loginbox" id="loginBox"></div>
+      <button class="freecount" id="freeBtn" type="button"><b id="freeN">0</b><span>volných termínů</span></button>
+    </div>
+  </header>
+  <p class="notice" id="notice" hidden></p>
+
+  <nav class="tabs" role="tablist">
+    <button role="tab" data-tab="week" aria-selected="true">Rozpis po týdnech</button>
+    <button role="tab" data-tab="free" aria-selected="false">Volné termíny</button>
+    <button role="tab" data-tab="school" aria-selected="false">Termíny školy</button>
+    <span class="spacer"></span>
+    <label class="hl">Škola
+      <select id="schoolSel"><option value="">všechny</option></select>
+    </label>
+  </nav>
+
+  <section id="viewWeek">
+    <div class="weekbar">
+      <button class="navbtn" id="prev" type="button" aria-label="Předchozí týden">◀</button>
+      <h2 id="weekTitle"></h2>
+      <span class="parity" id="parity"></span>
+      <button class="navbtn" id="next" type="button" aria-label="Další týden">▶</button>
+      <span class="spacer"></span>
+      <select id="weekSel" aria-label="Vybrat týden"></select>
+    </div>
+    <div class="week" id="week"></div>
+    <div class="legend">
+      <span><i style="background:var(--blue-soft)"></i>přiděleno podle rozpisu</span>
+      <span><i style="background:var(--orange-soft);border-color:var(--orange)"></i>volné, lze rezervovat</span>
+      <span><i style="background:var(--paper);border-color:var(--blue);box-shadow:inset 3px 0 0 var(--blue)"></i>rezervováno jinou školou</span>
+      <span><i style="background:repeating-linear-gradient(135deg,var(--closed) 0 4px,transparent 4px 7px)"></i>nekoná se (prázdniny, svátek)</span>
+    </div>
+  </section>
+
+  <section id="viewFree" hidden><div class="list" id="freeList"></div></section>
+  <section id="viewSchool" hidden><div class="list" id="schoolList"></div></section>
+  <footer class="foot"><span>Lingua Universal, Litoměřice</span><button type="button" class="linkbtn" id="adminBtn">Správa ledu</button></footer>
+</div>
+
+<dialog id="dlg"><form method="dialog" class="dlg" id="dlgBody"></form></dialog>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+// ======== NASTAVENÍ ========
+// Sem vložte adresu webové aplikace z Google Apps Script (končí na /exec)
+const API_URL = "";
+// ===========================
+(function(){
+"use strict";
+// ---------- Rozpis podle tabulky ----------
+const AM = "8.00–9.30", PM = "12.00–13.30";
+let BASE = {
+  odd: [
+    ["ZŠ B. Němcové", "ZŠ Žalhostice"],
+    ["ZŠ Na Valech", "Ploskovice"],
+    ["MŠ", "Křešice / dle domluvy Waldorfská škola"],
+    ["ZŠ Ladova", "ZŠ U Stadionu"],
+    ["ZŠ Havlíčkova", "ZŠ Masarykova / dle domluvy Lingua Universal"]
+  ],
+  even: [
+    ["ZŠ Masarykova", "ZŠ B. Němcové"],
+    ["Speciální školy", "ZŠ Havlíčkova"],
+    ["MŠ", ""],
+    ["ZŠ U Stadionu", "ZŠ Na Valech"],
+    ["Lingua Universal / dle domluvy další ZŠ", "ZŠ Masarykova"]
+  ]
+};
+// Prázdný text = termín v rozpisu nikdo nemá, je rovnou volný k rezervaci.
+let SCHOOLS = ["Lingua Universal","MŠ","Křešice","Ploskovice","Speciální školy","Svobodná škola","Waldorfská škola",
+  "ZŠ B. Němcové","ZŠ Havlíčkova","ZŠ Ladova","ZŠ Masarykova","ZŠ Na Valech","ZŠ U Stadionu","ZŠ Žalhostice"];
+// Dny bez výuky (MŠMT 2026/2027, okres Litoměřice)
+const CLOSED = {};
+function closeRange(a,b,why){ for(let d=parse(a); d<=parse(b); d=addDays(d,1)) CLOSED[iso(d)] = why; }
+closeRange("2026-11-17","2026-11-17","Státní svátek");
+closeRange("2026-12-23","2027-01-01","Vánoční prázdniny");
+closeRange("2027-01-29","2027-01-29","Pololetní prázdniny");
+closeRange("2027-03-01","2027-03-05","Jarní prázdniny");
+closeRange("2027-03-25","2027-03-25","Velikonoční prázdniny");
+closeRange("2027-03-26","2027-03-26","Velký pátek");
+
+const START = parse("2026-11-05"), END = parse("2027-03-31");
+const DAYS = ["Pondělí","Úterý","Středa","Čtvrtek","Pátek"];
+
+// ---------- Datum ----------
+function parse(s){ const [y,m,d]=s.split("-").map(Number); return new Date(Date.UTC(y,m-1,d)); }
+function iso(d){ return d.toISOString().slice(0,10); }
+function addDays(d,n){ return new Date(d.getTime()+n*864e5); }
+function isoWeek(date){ const d=new Date(date.getTime()); const n=d.getUTCDay()||7; d.setUTCDate(d.getUTCDate()+4-n);
+  const y0=new Date(Date.UTC(d.getUTCFullYear(),0,1)); return Math.ceil(((d-y0)/864e5+1)/7); }
+function fmt(d){ return d.getUTCDate()+". "+(d.getUTCMonth()+1)+". "; }
+function fmtY(d){ return fmt(d)+d.getUTCFullYear(); }
+const now = new Date(); const TODAY = new Date(Date.UTC(now.getFullYear(),now.getMonth(),now.getDate()));
+
+const WEEKS = [];
+for(let m=parse("2026-11-02"); m<=END; m=addDays(m,7)){
+  const days=[]; for(let i=0;i<5;i++){ const d=addDays(m,i); if(d>=START && d<=END) days.push(d); }
+  const w=isoWeek(m); WEEKS.push({monday:m, days, week:w, parity: w%2 ? "odd" : "even"});
+}
+const SLOTS = []; // všechny sloty
+WEEKS.forEach((wk,wi)=>wk.days.forEach((d,di)=>["am","pm"].forEach((p,pi)=>{
+  SLOTS.push({id:iso(d)+"-"+p, date:d, dayIdx:(d.getUTCDay()+6)%7, weekIdx:wi, part:p, time:pi?PM:AM, base:BASE[wk.parity][(d.getUTCDay()+6)%7][pi]});
+})));
+const BY_ID = Object.fromEntries(SLOTS.map(s=>[s.id,s]));
+applyStart({"Lingua Universal":"2027-01-01"});
+
+// ---------- Stav ----------
+let overrides = {};           // id -> data z db
+let canWrite = false, isOwner = false, dbReady = false, adminPin = "";
+try{ adminPin = sessionStorage.getItem("brusleniPin")||""; isOwner = !!adminPin; }catch(e){}
+let me = null; // {code, school}
+try{ me = JSON.parse(localStorage.getItem("brusleniSkola")||"null"); }catch(e){}
+const norm = x => String(x||"").trim().toLowerCase();
+const mine = s => !!me && !!s.base && norm(s.base).includes(norm(me.school));
+let tab = "week", weekIdx = 0, school = "";
+{ const i = WEEKS.findIndex(w=>addDays(w.monday,6)>=TODAY); weekIdx = i<0 ? WEEKS.length-1 : i; }
+
+function state(s){
+  const o = overrides[s.id];
+  if(o && o.status==="closed") return {kind:"closed", label:"Nekoná se", note:String(o.reason||"")};
+  if(CLOSED[iso(s.date)]) return {kind:"closed", label:"Nekoná se", note:CLOSED[iso(s.date)]};
+  if(o && o.status==="free") return {kind:"free", label:"Volné", note: (o.releasedBy||s.base) ? "Uvolnila: "+String(o.releasedBy||s.base) : (s.freeNote||"V rozpisu nikdo")};
+  if(o && o.status==="booked") return {kind:"booked", label:String(o.school||""), note:"", contact:String(o.contact||"")};
+  if(!s.base) return {kind:"free", label:"Volné", note:s.freeNote||"V rozpisu nikdo"};
+  return {kind:"assigned", label:s.base, note:""};
+}
+function matchesSchool(s, st, name){
+  if(!name) return false;
+  const who = st.kind==="booked" ? st.label : (st.kind==="assigned" ? s.base : "");
+  return who.toLowerCase().includes(name.toLowerCase());
+}
+const isPast = s => s.date < TODAY;
+
+// ---------- DOM ----------
+const $ = id => document.getElementById(id);
+function h(tag, attrs, ...kids){ const el=document.createElement(tag);
+  for(const k in (attrs||{})){ const v=attrs[k]; if(v==null||v===false) continue;
+    if(k==="class") el.className=v; else if(k.startsWith("on")) el.addEventListener(k.slice(2),v); else el.setAttribute(k,v===true?"":v); }
+  kids.flat().forEach(c=>{ if(c==null||c===false) return; el.append(c instanceof Node?c:document.createTextNode(String(c))); });
+  return el; }
+
+function render(){
+  const free = SLOTS.filter(s=>!isPast(s) && state(s).kind==="free");
+  $("freeN").textContent = free.length;
+  $("viewWeek").hidden = tab!=="week"; $("viewFree").hidden = tab!=="free"; $("viewSchool").hidden = tab!=="school";
+  document.querySelectorAll("nav.tabs [data-tab]").forEach(b=>b.setAttribute("aria-selected", b.dataset.tab===tab));
+  if(tab==="week") renderWeek(); else if(tab==="free") renderList($("freeList"), free, "Teď nejsou žádné volné termíny. Jakmile některá škola termín uvolní, objeví se tady.");
+  else renderSchool();
+}
+
+function slotButton(s){
+  const st = state(s);
+  const cls = ["slot", st.kind, isPast(s)&&"past", school && (matchesSchool(s,st,school)?"mark":(st.kind==="free"?"":"dim"))].filter(Boolean).join(" ");
+  let status = "";
+  if(st.kind==="free") status = st.note;
+  else if(st.kind==="booked") status = s.base ? "místo: "+s.base : "rezervace";
+  else if(st.kind==="closed") status = st.note;
+  return h("button",{type:"button", class:cls, onclick:()=>openSlot(s), disabled: st.kind==="closed" && !isOwner ? true : null,
+      "aria-label": DAYS[s.dayIdx]+" "+fmtY(s.date)+", "+s.time+": "+(st.kind==="free"?"volné":st.label)},
+    h("span",{class:"time"}, s.time),
+    h("span",{class:"who"}, st.kind==="closed" ? "Nekoná se" : st.kind==="free" ? "Volné" : st.label),
+    status ? h("span",{class:"st"}, status) : null);
+}
+
+function renderWeek(){
+  const wk = WEEKS[weekIdx];
+  $("weekTitle").textContent = "Týden "+fmt(wk.days[0])+"– "+fmtY(wk.days[wk.days.length-1]);
+  const p=$("parity"); p.textContent = wk.parity==="odd" ? "lichý týden" : "sudý týden"; p.className = "parity "+wk.parity;
+  $("prev").disabled = weekIdx===0; $("next").disabled = weekIdx===WEEKS.length-1;
+  $("weekSel").value = String(weekIdx);
+  const box=$("week"); box.replaceChildren();
+  wk.days.forEach((d,di)=>{
+    const am=BY_ID[iso(d)+"-am"], pm=BY_ID[iso(d)+"-pm"];
+    box.append(h("div",{class:"day"}, h("h3",null, DAYS[(d.getUTCDay()+6)%7], h("small",null, fmt(d))), slotButton(am), slotButton(pm)));
+  });
+}
+
+function rowFor(s){
+  const st=state(s);
+  const who = st.kind==="free" ? "Volné. "+st.note : st.kind==="booked" ? st.label+(s.base?" (místo: "+s.base+")":"") : st.label;
+  return h("div",{class:"row "+st.kind},
+    h("span",{class:"d"}, DAYS[s.dayIdx]+" "+fmtY(s.date)),
+    h("span",{class:"t"}, s.time),
+    h("span",{class:"who"}, who),
+    h("button",{type:"button", class: st.kind==="free"?"btn orange":"btn ghost", onclick:()=>openSlot(s)}, st.kind==="free"?"Zarezervovat":"Otevřít"));
+}
+function renderList(box, items, emptyText){
+  box.replaceChildren();
+  if(!items.length){ box.append(h("div",{class:"empty"}, emptyText)); return; }
+  items.forEach(s=>box.append(rowFor(s)));
+}
+function renderSchool(){
+  const box=$("schoolList");
+  if(!school){ box.replaceChildren(h("div",{class:"empty"}, "Vpravo nahoře vyberte školu a uvidíte všechny její nadcházející termíny.")); return; }
+  const items = SLOTS.filter(s=>!isPast(s) && matchesSchool(s,state(s),school));
+  renderList(box, items, "Škola "+school+" nemá žádné nadcházející termíny.");
+}
+
+// ---------- Dialog ----------
+function openSlot(s){
+  const st = state(s), dlg=$("dlg"), body=$("dlgBody"); body.replaceChildren();
+  const err = h("p",{class:"err"});
+  const title = DAYS[s.dayIdx]+" "+fmtY(s.date);
+  body.append(h("h2",null,title), h("p",{class:"meta"}, s.time+", "+(WEEKS[s.weekIdx].parity==="odd"?"lichý":"sudý")+" týden"));
+  let stateText;
+  if(st.kind==="assigned") stateText = "Podle rozpisu: "+s.base;
+  else if(st.kind==="free") stateText = "Termín je volný. "+st.note+".";
+  else if(st.kind==="booked") stateText = "Rezervováno: "+st.label+(st.contact?" ("+st.contact+")":"")+(s.base ? ". Původně: "+s.base+"." : ".");
+  else stateText = "Nekoná se: "+st.note+".";
+  body.append(h("div",{class:"state"}, stateText));
+  const actions = h("div",{class:"actions"});
+  const past = isPast(s);
+  const ro = !dbReady || !canWrite;
+
+  if(past){ actions.append(h("p",{class:"meta"},"Termín už proběhl.")); }
+  else if(ro){ actions.append(h("p",{class:"meta"}, "Ukládání teď není k dispozici, zobrazuje se jen rozpis.")); }
+  else if(!me && !isOwner){
+    actions.append(h("p",{class:"meta"},"Uvolnit nebo zarezervovat termín může jen přihlášená škola. Nahoře zadejte kód své školy."));
+  }
+  else if(st.kind==="assigned"){
+    if(isOwner || mine(s)){
+      actions.append(h("button",{type:"button",class:"btn orange", onclick:()=>act(()=>release(s), "Termín uvolněn", err)}, "Nepřijdeme, uvolnit termín"));
+      const others = SCHOOLS.filter(n=>!norm(s.base).includes(norm(n)));
+      const sel = schoolSelect(others, "");
+      const contact = h("input",{type:"text", placeholder:"Kontakt na přebírající školu (nepovinné)", maxlength:"100"});
+      actions.append(h("div",{class:"handover"},
+        h("label",{class:"field"},"Nebo termín rovnou předat škole",sel), contact,
+        h("button",{type:"button",class:"btn", onclick:()=>{
+          if(!sel.value){ err.textContent="Vyberte školu, které termín předáváte."; return; }
+          act(()=>handover(s, sel.value, contact.value.trim()), "Termín předán škole "+sel.value, err);
+        }}, "Uvolnit a předat vybrané škole")));
+    }
+    else actions.append(h("p",{class:"meta"},"Tento termín patří škole "+s.base+". Uvolnit ho může jen ona nebo správce."));
+  }
+  else if(st.kind==="free"){
+    const sel = schoolSelect(SCHOOLS, me ? me.school : "");
+    const contact = h("input",{type:"text", placeholder:"Jméno a telefon (nepovinné)", maxlength:"100"});
+    actions.append(h("label",{class:"field"},"Pro kterou školu",sel), h("label",{class:"field"},"Kontakt",contact),
+      h("button",{type:"button",class:"btn", onclick:()=>{
+        if(!sel.value){ err.textContent="Vyberte školu, která na led přijde."; return; }
+        act(()=>book(s,sel.value,contact.value.trim()), "Termín zarezervován pro "+sel.value, err);
+      }}, "Zarezervovat termín"));
+  }
+  else if(st.kind==="booked"){
+    const o = overrides[s.id]||{};
+    if(isOwner || (me && (norm(o.school)===norm(me.school) || norm(o.bookedBy)===norm(me.school))))
+      actions.append(h("button",{type:"button",class:"btn ghost", onclick:()=>act(()=>unbook(s), "Rezervace zrušena, termín je znovu volný", err)}, "Zrušit rezervaci"));
+    else actions.append(h("p",{class:"meta"},"Zrušit rezervaci může jen škola "+st.label+" nebo správce."));
+  }
+  if(!past && !ro && isOwner){
+    if(st.kind!=="closed"){
+      const reason = h("input",{type:"text", placeholder:"Důvod, např. údržba ledu", maxlength:"80"});
+      actions.append(h("label",{class:"field"},"Správa ledu",reason),
+        h("button",{type:"button",class:"btn danger", onclick:()=>act(()=>closeSlot(s, reason.value.trim()||"Led není k dispozici"), "Termín zrušen", err)}, "Led nebude, zrušit termín"));
+    }
+    if(overrides[s.id]) actions.append(h("button",{type:"button",class:"btn ghost", onclick:()=>act(()=>resetSlot(s), "Vráceno podle rozpisu", err)}, "Vrátit podle původního rozpisu"));
+  }
+  actions.append(h("button",{type:"button",class:"btn ghost", onclick:()=>dlg.close()}, "Zavřít"));
+  body.append(actions, err);
+  dlg.showModal();
+}
+
+function schoolSelect(list, value){
+  const sel = h("select",null, h("option",{value:""},"Vyberte školu…"), ...list.map(n=>h("option",{value:n},n)));
+  if(value && list.includes(value)) sel.value = value;
+  return sel;
+}
+async function act(fn, okMsg, errEl){
+  const btns=[...$("dlgBody").querySelectorAll("button")]; btns.forEach(b=>b.disabled=true);
+  try{ await fn(); $("dlg").close(); toast(okMsg); }
+  catch(e){ errEl.textContent = e && e.userMsg ? e.userMsg : "Uložení se nepovedlo. Zkuste to prosím znovu."; }
+  finally{ btns.forEach(b=>b.disabled=false); }
+}
+function toast(msg){ const t=$("toast"); t.textContent=msg; t.classList.add("show"); clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.remove("show"),2600); }
+async function api(payload){
+  payload = Object.assign({code: me ? me.code : "", pin: adminPin}, payload);
+  const r = await fetch(API_URL, {method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"}, body:JSON.stringify(payload)});
+  const j = await r.json();
+  if(!j.ok){ const e=new Error(j.error||"chyba"); e.userMsg=j.error||null; throw e; }
+  if(j.data) applyData(j.data);
+  return j;
+}
+function applyStart(map){
+  SLOTS.forEach(s=>{ const prim=String(s.base||"").split("/")[0].trim(); const from=map[prim];
+    if(from && iso(s.date)<from){ s.freeNote = prim+" chodí až od "+fmtY(parse(from)); s.base=""; } });
+}
+function applyData(rows){ const o={}; rows.forEach(r=>{ if(BY_ID[r.id]) o[r.id]=r; }); overrides=o; render(); }
+async function load(){
+  try{ const r=await fetch(API_URL+"?action=list&t="+Date.now()); const j=await r.json();
+    if(!j.ok) throw 0;
+    if(j.base && j.base.odd && j.base.even){ BASE=j.base; SLOTS.forEach(s=>{ const r=BASE[WEEKS[s.weekIdx].parity][s.dayIdx]; s.base = r ? String(r[s.part==="am"?0:1]||"") : ""; s.freeNote=""; }); }
+    if(j.startFrom) applyStart(j.startFrom);
+    if(Array.isArray(j.schools) && j.schools.length && j.schools.join("|")!==SCHOOLS.join("|")){ SCHOOLS=j.schools.map(String); fillSchools(); }
+    applyData(j.data); dbReady=true; canWrite=true; }
+  catch(e){ dbReady=false; }
+  showNotice();
+}
+function release(s){ return api({action:"release", id:s.id}); }
+function book(s, name, contact){ return api({action:"book", id:s.id, school:name, contact}); }
+function handover(s, name, contact){ return api({action:"handover", id:s.id, school:name, contact}); }
+function unbook(s){ return api({action:"unbook", id:s.id}); }
+function closeSlot(s, reason){ return api({action:"close", id:s.id, reason, pin:adminPin}); }
+function resetSlot(s){ return api({action:"reset", id:s.id, pin:adminPin}); }
+
+function showNotice(){
+  const n=$("notice");
+  if(!API_URL){ n.hidden=false; n.textContent="Rezervace zatím nejsou napojené na tabulku. Zobrazuje se jen rozpis."; return; }
+  if(!dbReady){ n.hidden=false; n.textContent="Nepodařilo se načíst aktuální stav. Zkontrolujte připojení a obnovte stránku."; return; }
+  n.hidden=true;
+}
+function renderLogin(){
+  const box=$("loginBox"); box.replaceChildren();
+  if(me){
+    box.append(h("span",null,"Přihlášena škola: ",h("b",null,me.school)),
+      h("button",{type:"button",class:"linkbtn",onclick:()=>{ me=null; try{localStorage.removeItem("brusleniSkola");}catch(e){} renderLogin(); render(); toast("Odhlášeno"); }},"Odhlásit"));
+  } else if(API_URL){
+    const inp=h("input",{type:"text",inputmode:"numeric",autocomplete:"off",placeholder:"Kód školy","aria-label":"Kód školy",maxlength:"12"});
+    const go=async()=>{ const code=inp.value.trim(); if(!code) return;
+      try{ const j=await api({action:"login", code}); me={code, school:j.school}; try{localStorage.setItem("brusleniSkola",JSON.stringify(me));}catch(e){}
+        school=me.school; $("schoolSel").value=school; renderLogin(); render(); toast("Přihlášena škola "+me.school); }
+      catch(e){ toast("Neznámý kód školy"); } };
+    inp.addEventListener("keydown",e=>{ if(e.key==="Enter") go(); });
+    box.append(inp, h("button",{type:"button",class:"btn",onclick:go},"Přihlásit"));
+  }
+}
+async function adminLogin(){
+  if(isOwner){ adminPin=""; isOwner=false; try{sessionStorage.removeItem("brusleniPin");}catch(e){} $("adminBtn").textContent="Správa ledu"; render(); toast("Správa ukončena"); return; }
+  const pin = prompt("Zadejte PIN správce");
+  if(!pin) return;
+  try{ await api({action:"checkPin", pin}); adminPin=pin; isOwner=true; try{sessionStorage.setItem("brusleniPin",pin);}catch(e){}
+    $("adminBtn").textContent="Ukončit správu"; render(); toast("Jste přihlášena jako správce"); }
+  catch(e){ toast("Nesprávný PIN"); }
+}
+
+// ---------- Ovládání ----------
+document.querySelectorAll("nav.tabs [data-tab]").forEach(b=>b.addEventListener("click",()=>{ tab=b.dataset.tab; render(); }));
+$("freeBtn").addEventListener("click",()=>{ tab="free"; render(); });
+$("prev").addEventListener("click",()=>{ if(weekIdx>0){weekIdx--; render();} });
+$("next").addEventListener("click",()=>{ if(weekIdx<WEEKS.length-1){weekIdx++; render();} });
+WEEKS.forEach((w,i)=>$("weekSel").append(h("option",{value:String(i)}, fmt(w.days[0])+"– "+fmt(w.days[w.days.length-1])+(w.parity==="odd"?" (lichý)":" (sudý)"))));
+$("weekSel").addEventListener("change",e=>{ weekIdx=Number(e.target.value); render(); });
+function fillSchools(){ const sel=$("schoolSel"), v=sel.value; sel.replaceChildren(h("option",{value:""},"všechny"), ...SCHOOLS.map(n=>h("option",{value:n},n))); sel.value=v; }
+fillSchools();
+if(me){ school=me.school; $("schoolSel").value=school; }
+renderLogin();
+$("schoolSel").addEventListener("change",e=>{ school=e.target.value; render(); });
+
+render(); showNotice();
+
+// ---------- Načtení ----------
+$("adminBtn").addEventListener("click", adminLogin);
+if(isOwner) $("adminBtn").textContent="Ukončit správu";
+if(API_URL){ load(); setInterval(()=>{ if(!document.hidden && !$("dlg").open) load(); }, 30000);
+  document.addEventListener("visibilitychange",()=>{ if(!document.hidden) load(); }); }
+})();
+</script>
+</body>
+</html>
